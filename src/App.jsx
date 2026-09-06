@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import TimerDial from './components/TimerDial.jsx'
 import DurationInputs from './components/DurationInputs.jsx'
+import InstallButton from './components/InstallButton.jsx'
 import { useAlarmSound } from './hooks/useAlarmSound.js'
 import './App.css'
 
@@ -191,6 +192,7 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <span className="material-title">Google 타이머</span>
+        <InstallButton />
       </header>
 
       <main className="stage">
