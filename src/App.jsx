@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import TimerDial from './components/TimerDial.jsx'
 import DurationInputs from './components/DurationInputs.jsx'
 import InstallButton from './components/InstallButton.jsx'
+import MessagePrompt from './components/MessagePrompt.jsx'
 import { useAlarmSound } from './hooks/useAlarmSound.js'
 import './App.css'
 
@@ -33,6 +34,8 @@ export default function App() {
   const [remainingSeconds, setRemainingSeconds] = useState(0)
   const [showMillis, setShowMillis] = useState(false)
   const [remainingMsDisplay, setRemainingMsDisplay] = useState(0)
+  const [message, setMessage] = useState('')
+  const [showMessagePrompt, setShowMessagePrompt] = useState(false)
 
   const endAtRef = useRef(null)
   const intervalRef = useRef(null)
@@ -76,13 +79,15 @@ export default function App() {
       alarm.start()
       if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
-          new Notification('⏰ 타이머 종료', { body: '설정한 시간이 다 되었습니다.' })
+          new Notification(message ? `⏰ ${message}` : '⏰ 타이머 종료', {
+            body: '설정한 시간이 다 되었습니다.',
+          })
         } catch {
           /* ignore */
         }
       }
     }
-  }, [alarm, clearTick, releaseWakeLock])
+  }, [alarm, clearTick, message, releaseWakeLock])
 
   const start = useCallback(() => {
     if (totalInputSeconds <= 0) return
@@ -119,6 +124,7 @@ export default function App() {
     setStatus('idle')
     setRemainingSeconds(0)
     setBaseSeconds(0)
+    setMessage('')
   }, [alarm, clearTick, releaseWakeLock])
 
   const cancelSetup = useCallback(() => {
@@ -129,6 +135,22 @@ export default function App() {
     alarm.stop()
     resetToSetup()
   }, [alarm, resetToSetup])
+
+  const openMessagePrompt = useCallback(() => {
+    if (totalInputSeconds <= 0) return
+    setShowMessagePrompt(true)
+  }, [totalInputSeconds])
+
+  const confirmStart = useCallback(
+    (text) => {
+      setMessage(text)
+      setShowMessagePrompt(false)
+      start()
+    },
+    [start],
+  )
+
+  const cancelMessagePrompt = useCallback(() => setShowMessagePrompt(false), [])
 
   // Keep the countdown reasonably accurate even if the tab is throttled in
   // the background by re-syncing whenever the page becomes visible again.
@@ -207,7 +229,7 @@ export default function App() {
               />
             </TimerDial>
             <div className="actions">
-              <button className="btn btn-primary" disabled={totalInputSeconds <= 0} onClick={start}>
+              <button className="btn btn-primary" disabled={totalInputSeconds <= 0} onClick={openMessagePrompt}>
                 시작
               </button>
               <button className="btn btn-text" onClick={cancelSetup}>
@@ -219,18 +241,21 @@ export default function App() {
 
         {(status === 'running' || status === 'paused') && (
           <>
-            <TimerDial editable={false} fraction={progressFraction} accentColor={RED}>
-              <button
-                type="button"
-                className="countdown"
-                onClick={toggleMillis}
-                aria-pressed={showMillis}
-                title="탭하면 밀리초 표시를 켜고 끌 수 있어요"
-              >
-                {countdownText}
-              </button>
-              {status === 'paused' && <div className="countdown-sub">일시정지됨</div>}
-            </TimerDial>
+            <div className="dial-block">
+              {message && <div className="timer-message">{message}</div>}
+              <TimerDial editable={false} fraction={progressFraction} accentColor={RED}>
+                <button
+                  type="button"
+                  className="countdown"
+                  onClick={toggleMillis}
+                  aria-pressed={showMillis}
+                  title="탭하면 밀리초 표시를 켜고 끌 수 있어요"
+                >
+                  {countdownText}
+                </button>
+                {status === 'paused' && <div className="countdown-sub">일시정지됨</div>}
+              </TimerDial>
+            </div>
             <div className="actions">
               {status === 'running' ? (
                 <button className="btn btn-primary" onClick={pause}>
@@ -253,13 +278,18 @@ export default function App() {
             <div className="finished-emoji" aria-hidden>
               ⏰
             </div>
-            <div className="finished-title">시간이 다 되었습니다!</div>
+            <div className="finished-title">{message || '시간이 다 되었습니다!'}</div>
+            {message && <div className="finished-sub">시간이 다 되었습니다!</div>}
             <button className="btn btn-primary btn-stop" onClick={stopAlarm}>
               중지
             </button>
           </div>
         )}
       </main>
+
+      {showMessagePrompt && (
+        <MessagePrompt initialValue={message} onConfirm={confirmStart} onCancel={cancelMessagePrompt} />
+      )}
     </div>
   )
 }

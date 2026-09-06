@@ -105,6 +105,22 @@
 
 /* --- Dial --- */
 
+.dial-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.timer-message {
+  max-width: 280px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gray-900);
+  text-align: center;
+  word-break: break-word;
+}
+
 .dial-wrap {
   position: relative;
   width: min(78vw, 300px);
@@ -303,6 +319,14 @@
 .finished-title {
   font-size: clamp(22px, 6vw, 30px);
   color: var(--gray-900);
+  max-width: 320px;
+  word-break: break-word;
+}
+
+.finished-sub {
+  margin-top: -10px;
+  font-size: 14px;
+  color: var(--gray-500);
 }
 
 .btn-stop {
@@ -331,4 +355,54 @@
   80% {
     transform: rotate(6deg);
   }
+}
+
+/* --- Message prompt modal --- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.modal-input {
+  font-family: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+}
+
+.modal-input:focus {
+  outline: 2px solid var(--blue);
+  border-color: transparent;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
