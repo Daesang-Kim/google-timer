@@ -1,0 +1,41 @@
+:root {
+  --gray-50: #f8f9fa;
+  --gray-200: #e8eaed;
+  --gray-500: #5f6368;
+  --gray-900: #202124;
+  --blue: #1a73e8;
+  --blue-dark: #1558b0;
+  --red: #ea4335;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family:
+    'Google Sans', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-900);
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+}
