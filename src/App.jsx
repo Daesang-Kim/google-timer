@@ -64,7 +64,7 @@ export default function App() {
       releaseWakeLock()
       setStatus('finished')
       alarm.start()
-      if (document.hidden && Notification?.permission === 'granted') {
+      if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
           new Notification('⏰ 타이머 종료', { body: '설정한 시간이 다 되었습니다.' })
         } catch {
@@ -76,7 +76,7 @@ export default function App() {
 
   const start = useCallback(() => {
     if (totalInputSeconds <= 0) return
-    if (Notification && Notification.permission === 'default') {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {})
     }
     setBaseSeconds(totalInputSeconds)
