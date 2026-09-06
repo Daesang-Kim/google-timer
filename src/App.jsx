@@ -4,7 +4,6 @@ import DurationInputs from './components/DurationInputs.jsx'
 import { useAlarmSound } from './hooks/useAlarmSound.js'
 import './App.css'
 
-const BLUE = '#1a73e8'
 const RED = '#ea4335'
 
 function pad(n) {
@@ -188,7 +187,7 @@ export default function App() {
 
         {(status === 'running' || status === 'paused') && (
           <>
-            <TimerDial editable={false} fraction={progressFraction} accentColor={BLUE}>
+            <TimerDial editable={false} fraction={progressFraction} accentColor={RED}>
               <div className="countdown">{formatClock(remainingSeconds)}</div>
               {status === 'paused' && <div className="countdown-sub">일시정지됨</div>}
             </TimerDial>
