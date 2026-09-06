@@ -142,6 +142,21 @@
   font-size: clamp(30px, 9vw, 44px);
   font-variant-numeric: tabular-nums;
   color: var(--gray-900);
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.countdown:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.countdown:active {
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .countdown-sub {

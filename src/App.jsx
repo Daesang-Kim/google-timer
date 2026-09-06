@@ -17,12 +17,21 @@ function formatClock(totalSeconds) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`
 }
 
+function formatClockWithMillis(totalMs) {
+  const clamped = Math.max(0, totalMs)
+  const wholeSeconds = Math.floor(clamped / 1000)
+  const ms = Math.floor(clamped % 1000)
+  return `${formatClock(wholeSeconds)}.${String(ms).padStart(3, '0')}`
+}
+
 export default function App() {
   // 'idle' | 'running' | 'paused' | 'finished'
   const [status, setStatus] = useState('idle')
   const [duration, setDuration] = useState({ hours: 0, minutes: 5, seconds: 0 })
   const [baseSeconds, setBaseSeconds] = useState(0)
   const [remainingSeconds, setRemainingSeconds] = useState(0)
+  const [showMillis, setShowMillis] = useState(false)
+  const [remainingMsDisplay, setRemainingMsDisplay] = useState(0)
 
   const endAtRef = useRef(null)
   const intervalRef = useRef(null)
@@ -122,17 +131,33 @@ export default function App() {
 
   // Keep the countdown reasonably accurate even if the tab is throttled in
   // the background by re-syncing whenever the page becomes visible again.
+  // The Screen Wake Lock is also auto-released by the browser once the tab
+  // is hidden, so re-request it here too instead of only at start/resume.
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState === 'visible' && status === 'running') {
         tick()
+        requestWakeLock()
       }
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
-  }, [status, tick])
+  }, [status, tick, requestWakeLock])
 
   useEffect(() => () => clearTick(), [clearTick])
+
+  // While the millisecond view is toggled on and the timer is running,
+  // recompute the precise remaining time every animation frame.
+  useEffect(() => {
+    if (!showMillis || status !== 'running') return
+    let rafId
+    const loop = () => {
+      setRemainingMsDisplay(Math.max(0, endAtRef.current - Date.now()))
+      rafId = requestAnimationFrame(loop)
+    }
+    rafId = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(rafId)
+  }, [showMillis, status])
 
   useEffect(() => {
     if (status === 'running' || status === 'paused') {
@@ -156,6 +181,11 @@ export default function App() {
     (m) => setDuration((prev) => ({ ...prev, minutes: m })),
     [],
   )
+  const toggleMillis = useCallback(() => setShowMillis((v) => !v), [])
+
+  const countdownText = showMillis
+    ? formatClockWithMillis(status === 'running' ? remainingMsDisplay : remainingSeconds * 1000)
+    : formatClock(remainingSeconds)
 
   return (
     <div className="app">
@@ -188,7 +218,15 @@ export default function App() {
         {(status === 'running' || status === 'paused') && (
           <>
             <TimerDial editable={false} fraction={progressFraction} accentColor={RED}>
-              <div className="countdown">{formatClock(remainingSeconds)}</div>
+              <button
+                type="button"
+                className="countdown"
+                onClick={toggleMillis}
+                aria-pressed={showMillis}
+                title="탭하면 밀리초 표시를 켜고 끌 수 있어요"
+              >
+                {countdownText}
+              </button>
               {status === 'paused' && <div className="countdown-sub">일시정지됨</div>}
             </TimerDial>
             <div className="actions">
