@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function MessagePrompt({ initialValue, onConfirm, onCancel }) {
+export default function MessagePrompt({ initialValue, initialNotifyBeforeEnd, onConfirm, onCancel }) {
   const [value, setValue] = useState(initialValue)
+  const [notifyBeforeEnd, setNotifyBeforeEnd] = useState(initialNotifyBeforeEnd)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -10,7 +11,7 @@ export default function MessagePrompt({ initialValue, onConfirm, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onConfirm(value.trim())
+    onConfirm(value.trim(), notifyBeforeEnd)
   }
 
   return (
@@ -29,6 +30,14 @@ export default function MessagePrompt({ initialValue, onConfirm, onCancel }) {
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
+        <label className="modal-checkbox">
+          <input
+            type="checkbox"
+            checked={notifyBeforeEnd}
+            onChange={(e) => setNotifyBeforeEnd(e.target.checked)}
+          />
+          종료 1분 전에 알림받기
+        </label>
         <div className="modal-actions">
           <button type="button" className="btn btn-text" onClick={onCancel}>
             취소

@@ -35,11 +35,20 @@ export default function App() {
   const [showMillis, setShowMillis] = useState(false)
   const [remainingMsDisplay, setRemainingMsDisplay] = useState(0)
   const [message, setMessage] = useState('')
+  const [notifyBeforeEnd, setNotifyBeforeEnd] = useState(true)
   const [showMessagePrompt, setShowMessagePrompt] = useState(false)
 
   const endAtRef = useRef(null)
   const intervalRef = useRef(null)
   const wakeLockRef = useRef(null)
+  const oneMinuteWarnedRef = useRef(false)
+  // Mirror message/notifyBeforeEnd/baseSeconds but updated synchronously,
+  // since confirmStart()/start() call setInterval(tick, ...) in the same
+  // event handler as the setState calls - the state updates wouldn't be
+  // visible yet to tick()'s closure at that point.
+  const messageRef = useRef('')
+  const notifyBeforeEndRef = useRef(true)
+  const baseSecondsRef = useRef(0)
   const alarm = useAlarmSound()
 
   const totalInputSeconds = duration.hours * 3600 + duration.minutes * 60 + duration.seconds
@@ -72,6 +81,26 @@ export default function App() {
     const msLeft = endAtRef.current - Date.now()
     const secLeft = Math.max(0, Math.round(msLeft / 1000))
     setRemainingSeconds(secLeft)
+
+    if (
+      notifyBeforeEndRef.current &&
+      !oneMinuteWarnedRef.current &&
+      secLeft <= 60 &&
+      secLeft > 0 &&
+      baseSecondsRef.current > 60
+    ) {
+      oneMinuteWarnedRef.current = true
+      if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+          new Notification(messageRef.current ? `⏰ ${messageRef.current}` : '⏰ 타이머', {
+            body: '1분 남았습니다.',
+          })
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
     if (secLeft <= 0) {
       clearTick()
       releaseWakeLock()
@@ -79,7 +108,7 @@ export default function App() {
       alarm.start()
       if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
-          new Notification(message ? `⏰ ${message}` : '⏰ 타이머 종료', {
+          new Notification(messageRef.current ? `⏰ ${messageRef.current}` : '⏰ 타이머 종료', {
             body: '설정한 시간이 다 되었습니다.',
           })
         } catch {
@@ -87,13 +116,15 @@ export default function App() {
         }
       }
     }
-  }, [alarm, clearTick, message, releaseWakeLock])
+  }, [alarm, clearTick, releaseWakeLock])
 
   const start = useCallback(() => {
     if (totalInputSeconds <= 0) return
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {})
     }
+    oneMinuteWarnedRef.current = false
+    baseSecondsRef.current = totalInputSeconds
     setBaseSeconds(totalInputSeconds)
     setRemainingSeconds(totalInputSeconds)
     endAtRef.current = Date.now() + totalInputSeconds * 1000
@@ -124,7 +155,11 @@ export default function App() {
     setStatus('idle')
     setRemainingSeconds(0)
     setBaseSeconds(0)
+    baseSecondsRef.current = 0
     setMessage('')
+    messageRef.current = ''
+    setNotifyBeforeEnd(true)
+    notifyBeforeEndRef.current = true
   }, [alarm, clearTick, releaseWakeLock])
 
   const cancelSetup = useCallback(() => {
@@ -142,8 +177,11 @@ export default function App() {
   }, [totalInputSeconds])
 
   const confirmStart = useCallback(
-    (text) => {
+    (text, notify) => {
+      messageRef.current = text
+      notifyBeforeEndRef.current = notify
       setMessage(text)
+      setNotifyBeforeEnd(notify)
       setShowMessagePrompt(false)
       start()
     },
@@ -288,7 +326,12 @@ export default function App() {
       </main>
 
       {showMessagePrompt && (
-        <MessagePrompt initialValue={message} onConfirm={confirmStart} onCancel={cancelMessagePrompt} />
+        <MessagePrompt
+          initialValue={message}
+          initialNotifyBeforeEnd={notifyBeforeEnd}
+          onConfirm={confirmStart}
+          onCancel={cancelMessagePrompt}
+        />
       )}
     </div>
   )
