@@ -33,6 +33,7 @@ export function useAlarmSound() {
       beep(ctx, now, 988)
       beep(ctx, now + 0.28, 988)
       beep(ctx, now + 0.56, 1318)
+      navigator.vibrate?.([180, 100, 180, 100, 180])
     }
     playCycle()
     intervalRef.current = setInterval(playCycle, 1300)
@@ -47,6 +48,7 @@ export function useAlarmSound() {
       ctxRef.current.close().catch(() => {})
       ctxRef.current = null
     }
+    navigator.vibrate?.(0)
   }, [])
 
   return { start, stop }

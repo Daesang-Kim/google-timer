@@ -51,6 +51,7 @@ export default function App() {
   const messageRef = useRef('')
   const notifyBeforeEndRef = useRef(true)
   const baseSecondsRef = useRef(0)
+  const badgeMinutesRef = useRef(null)
   const alarm = useAlarmSound()
   const { shortcuts, addShortcut, removeShortcut } = useTimerShortcuts()
 
@@ -80,10 +81,28 @@ export default function App() {
     }
   }, [])
 
+  // Best-effort PWA icon badge (Chromium/Android; unsupported browsers no-op).
+  const updateBadge = useCallback((secLeft) => {
+    if (!('setAppBadge' in navigator)) return
+    const minutes = Math.max(1, Math.ceil(secLeft / 60))
+    if (badgeMinutesRef.current === minutes) return
+    badgeMinutesRef.current = minutes
+    navigator.setAppBadge(minutes).catch(() => {})
+  }, [])
+
+  const clearBadge = useCallback(() => {
+    if (badgeMinutesRef.current === null) return
+    badgeMinutesRef.current = null
+    if ('clearAppBadge' in navigator) {
+      navigator.clearAppBadge().catch(() => {})
+    }
+  }, [])
+
   const tick = useCallback(() => {
     const msLeft = endAtRef.current - Date.now()
     const secLeft = Math.max(0, Math.round(msLeft / 1000))
     setRemainingSeconds(secLeft)
+    if (secLeft > 0) updateBadge(secLeft)
 
     if (
       notifyBeforeEndRef.current &&
@@ -93,6 +112,7 @@ export default function App() {
       baseSecondsRef.current > 60
     ) {
       oneMinuteWarnedRef.current = true
+      navigator.vibrate?.(200)
       if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
           new Notification(messageRef.current ? `⏰ ${messageRef.current}` : '⏰ 타이머', {
@@ -107,6 +127,7 @@ export default function App() {
     if (secLeft <= 0) {
       clearTick()
       releaseWakeLock()
+      clearBadge()
       setStatus('finished')
       alarm.start()
       if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -119,7 +140,7 @@ export default function App() {
         }
       }
     }
-  }, [alarm, clearTick, releaseWakeLock])
+  }, [alarm, clearBadge, clearTick, releaseWakeLock, updateBadge])
 
   const startTimer = useCallback(
     (seconds, { text = '', notify = true } = {}) => {
@@ -136,12 +157,13 @@ export default function App() {
       setBaseSeconds(seconds)
       setRemainingSeconds(seconds)
       endAtRef.current = Date.now() + seconds * 1000
+      updateBadge(seconds)
       setStatus('running')
       requestWakeLock()
       clearTick()
       intervalRef.current = setInterval(tick, 250)
     },
-    [clearTick, requestWakeLock, tick],
+    [clearTick, requestWakeLock, tick, updateBadge],
   )
 
   const pause = useCallback(() => {
@@ -161,6 +183,7 @@ export default function App() {
   const resetToSetup = useCallback(() => {
     clearTick()
     releaseWakeLock()
+    clearBadge()
     alarm.stop()
     setStatus('idle')
     setRemainingSeconds(0)
@@ -170,7 +193,7 @@ export default function App() {
     messageRef.current = ''
     setNotifyBeforeEnd(true)
     notifyBeforeEndRef.current = true
-  }, [alarm, clearTick, releaseWakeLock])
+  }, [alarm, clearBadge, clearTick, releaseWakeLock])
 
   const cancelSetup = useCallback(() => {
     setDuration({ hours: 0, minutes: 0, seconds: 0 })

@@ -39,7 +39,7 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--blue, #1a73e8);
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--gray-200);
   border-radius: 16px;
   padding: 6px 10px;
@@ -48,7 +48,7 @@
 }
 
 .install-btn:hover {
-  background: #eaf1fd;
+  background: var(--tint-blue);
 }
 
 .install-btn-icon {
@@ -61,10 +61,10 @@
   top: calc(100% + 8px);
   right: 0;
   width: 240px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--gray-200);
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px var(--shadow-color);
   padding: 14px;
   text-align: left;
   font-size: 13px;
@@ -116,7 +116,7 @@
 .shortcut-chip {
   display: flex;
   align-items: stretch;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--gray-200);
   border-radius: 16px;
   overflow: hidden;
@@ -133,7 +133,7 @@
 }
 
 .shortcut-chip-main:hover {
-  background: #eaf1fd;
+  background: var(--tint-blue);
 }
 
 .shortcut-chip-remove {
@@ -148,7 +148,7 @@
 }
 
 .shortcut-chip-remove:hover {
-  background: #fce8e6;
+  background: var(--tint-red);
   color: var(--red);
 }
 
@@ -163,7 +163,7 @@
 }
 
 .shortcut-chip-add:hover:not(:disabled) {
-  background: #eaf1fd;
+  background: var(--tint-blue);
 }
 
 .shortcut-chip-add:disabled {
@@ -207,7 +207,7 @@
 }
 
 .dial-track {
-  fill: #fff;
+  fill: var(--surface);
   stroke: var(--gray-200);
   stroke-width: 2;
 }
@@ -281,7 +281,7 @@
 
 .segment-input:focus {
   outline: 2px solid var(--blue);
-  background: #eaf1fd;
+  background: var(--tint-blue);
 }
 
 .segment-label {
@@ -312,11 +312,11 @@
 }
 
 .countdown:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--overlay-hover);
 }
 
 .countdown:active {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--overlay-active);
 }
 
 .countdown-sub {
@@ -366,7 +366,7 @@
 }
 
 .btn-text:hover {
-  background: #eaf1fd;
+  background: var(--tint-blue);
 }
 
 /* --- Finished screen --- */
@@ -441,10 +441,10 @@
 .modal-card {
   width: 100%;
   max-width: 320px;
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 30px var(--shadow-color);
   display: flex;
   flex-direction: column;
   gap: 12px;

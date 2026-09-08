@@ -6,11 +6,33 @@
   --blue: #1a73e8;
   --blue-dark: #1558b0;
   --red: #ea4335;
+  --surface: #ffffff;
+  --tint-blue: #eaf1fd;
+  --tint-red: #fce8e6;
+  --overlay-hover: rgba(0, 0, 0, 0.04);
+  --overlay-active: rgba(0, 0, 0, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.2);
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gray-50: #131314;
+    --gray-200: #3c4043;
+    --gray-500: #9aa0a6;
+    --gray-900: #e8eaed;
+    --surface: #1e1f20;
+    --tint-blue: rgba(138, 180, 248, 0.16);
+    --tint-red: rgba(242, 139, 130, 0.16);
+    --overlay-hover: rgba(255, 255, 255, 0.06);
+    --overlay-active: rgba(255, 255, 255, 0.12);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
 }
 
 * {
