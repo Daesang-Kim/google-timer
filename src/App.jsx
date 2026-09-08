@@ -3,7 +3,9 @@ import TimerDial from './components/TimerDial.jsx'
 import DurationInputs from './components/DurationInputs.jsx'
 import InstallButton from './components/InstallButton.jsx'
 import MessagePrompt from './components/MessagePrompt.jsx'
+import ShortcutBar from './components/ShortcutBar.jsx'
 import { useAlarmSound } from './hooks/useAlarmSound.js'
+import { useTimerShortcuts } from './hooks/useTimerShortcuts.js'
 import './App.css'
 
 const RED = '#ea4335'
@@ -43,13 +45,14 @@ export default function App() {
   const wakeLockRef = useRef(null)
   const oneMinuteWarnedRef = useRef(false)
   // Mirror message/notifyBeforeEnd/baseSeconds but updated synchronously,
-  // since confirmStart()/start() call setInterval(tick, ...) in the same
-  // event handler as the setState calls - the state updates wouldn't be
-  // visible yet to tick()'s closure at that point.
+  // since startTimer() calls setInterval(tick, ...) in the same event
+  // handler as the setState calls - the state updates wouldn't be visible
+  // yet to tick()'s closure at that point.
   const messageRef = useRef('')
   const notifyBeforeEndRef = useRef(true)
   const baseSecondsRef = useRef(0)
   const alarm = useAlarmSound()
+  const { shortcuts, addShortcut, removeShortcut } = useTimerShortcuts()
 
   const totalInputSeconds = duration.hours * 3600 + duration.minutes * 60 + duration.seconds
 
@@ -118,21 +121,28 @@ export default function App() {
     }
   }, [alarm, clearTick, releaseWakeLock])
 
-  const start = useCallback(() => {
-    if (totalInputSeconds <= 0) return
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {})
-    }
-    oneMinuteWarnedRef.current = false
-    baseSecondsRef.current = totalInputSeconds
-    setBaseSeconds(totalInputSeconds)
-    setRemainingSeconds(totalInputSeconds)
-    endAtRef.current = Date.now() + totalInputSeconds * 1000
-    setStatus('running')
-    requestWakeLock()
-    clearTick()
-    intervalRef.current = setInterval(tick, 250)
-  }, [clearTick, requestWakeLock, tick, totalInputSeconds])
+  const startTimer = useCallback(
+    (seconds, { text = '', notify = true } = {}) => {
+      if (seconds <= 0) return
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {})
+      }
+      messageRef.current = text
+      notifyBeforeEndRef.current = notify
+      oneMinuteWarnedRef.current = false
+      baseSecondsRef.current = seconds
+      setMessage(text)
+      setNotifyBeforeEnd(notify)
+      setBaseSeconds(seconds)
+      setRemainingSeconds(seconds)
+      endAtRef.current = Date.now() + seconds * 1000
+      setStatus('running')
+      requestWakeLock()
+      clearTick()
+      intervalRef.current = setInterval(tick, 250)
+    },
+    [clearTick, requestWakeLock, tick],
+  )
 
   const pause = useCallback(() => {
     clearTick()
@@ -178,17 +188,19 @@ export default function App() {
 
   const confirmStart = useCallback(
     (text, notify) => {
-      messageRef.current = text
-      notifyBeforeEndRef.current = notify
-      setMessage(text)
-      setNotifyBeforeEnd(notify)
       setShowMessagePrompt(false)
-      start()
+      startTimer(totalInputSeconds, { text, notify })
     },
-    [start],
+    [startTimer, totalInputSeconds],
   )
 
   const cancelMessagePrompt = useCallback(() => setShowMessagePrompt(false), [])
+
+  const quickStart = useCallback((seconds) => startTimer(seconds), [startTimer])
+
+  const saveCurrentAsShortcut = useCallback(() => {
+    if (totalInputSeconds > 0) addShortcut(totalInputSeconds)
+  }, [addShortcut, totalInputSeconds])
 
   // Keep the countdown reasonably accurate even if the tab is throttled in
   // the background by re-syncing whenever the page becomes visible again.
@@ -258,6 +270,13 @@ export default function App() {
       <main className="stage">
         {status === 'idle' && (
           <>
+            <ShortcutBar
+              shortcuts={shortcuts}
+              onSelect={quickStart}
+              onAdd={saveCurrentAsShortcut}
+              canAdd={totalInputSeconds > 0}
+              onRemove={removeShortcut}
+            />
             <TimerDial editable fraction={editFraction} accentColor={RED} onChangeMinutes={handleDialMinutes}>
               <DurationInputs
                 hours={duration.hours}

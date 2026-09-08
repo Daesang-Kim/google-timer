@@ -103,6 +103,74 @@
   padding: 16px;
 }
 
+/* --- Shortcut bar --- */
+
+.shortcut-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 340px;
+}
+
+.shortcut-chip {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.shortcut-chip-main {
+  border: none;
+  background: transparent;
+  color: var(--gray-900);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.shortcut-chip-main:hover {
+  background: #eaf1fd;
+}
+
+.shortcut-chip-remove {
+  border: none;
+  border-left: 1px solid var(--gray-200);
+  background: transparent;
+  color: #9aa0a6;
+  font-size: 13px;
+  line-height: 1;
+  padding: 7px 9px;
+  cursor: pointer;
+}
+
+.shortcut-chip-remove:hover {
+  background: #fce8e6;
+  color: var(--red);
+}
+
+.shortcut-chip-add {
+  border-style: dashed;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shortcut-chip-add:hover:not(:disabled) {
+  background: #eaf1fd;
+}
+
+.shortcut-chip-add:disabled {
+  color: #9aa0a6;
+  cursor: default;
+}
+
 /* --- Dial --- */
 
 .dial-block {
